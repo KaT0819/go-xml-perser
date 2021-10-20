@@ -1,0 +1,60 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: test API
+host: localhost:8080
+basePath: "/v1"
+schemes:
+  - http
+  # - https
+produces:
+  - application/json
+consumes:
+  - application/json
+securityDefinitions:
+  ApiKeyAuth:
+    type: apiKey
+    in: header
+    name: X-API-Key
+  Bearer:
+    type: apiKey
+    in: header
+    name: Authorization
+paths:
+  /test:
+    get:
+      description: テスト
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: string
+          headers:
+            Access-Control-Allow-Headers:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Origin:
+              type: "string"
+        '401':
+          description: Unauthorized
+          schema:
+            type: string
+            example: Auth Failed
+          headers:
+            Access-Control-Allow-Headers:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Origin:
+              type: "string"
+        '404':
+          description: Not Found
+          headers:
+            Access-Control-Allow-Headers:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Origin:
+              type: "string"
+# definitions:

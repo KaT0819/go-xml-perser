@@ -1,0 +1,68 @@
+# This is a basic workflow to help you get started with Actions
+# name: go-ci
+name: 'CI'
+
+# Controls when the workflow will run
+on:
+  push: 
+  pull_request:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  # 共通処理
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: set up
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.16
+        id: go
+      - name: check out
+        uses: actions/checkout@v2
+
+      # 処理を高速化するために環境をキャッシュ
+      - name: Cache
+        uses: actions/cache@v2.1.0
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+  
+  # buildテスト
+  build:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: build
+        run: |
+          go build ./...
+
+  # test
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: 'docker/compose'
+        run: |
+          docker-compose -f docker-compose.yml up --build -d 
+          gcloud config configurations create emulator
+          gcloud config set auth/disable_credentials true
+          gcloud config set project test-project
+          gcloud config set api_endpoint_overrides/spanner http://localhost:9020/
+          gcloud config configurations activate emulator
+      - name: test
+        run: |
+          go test ./src/handler/... -v -short
+        env:
+          SPANNER_PROJECT_ID: test-project
+          SPANNER_INSTANCE_ID: test-instance
+          SPANNER_DATABASE_ID: test-database
+          SPANNER_EMULATOR_AVAILABLE: true
+          SPANNER_EMULATOR_HOST: localhost:9010

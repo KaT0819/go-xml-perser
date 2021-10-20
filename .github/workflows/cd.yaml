@@ -1,0 +1,48 @@
+name: 'CD GCP Deploy'
+
+on:
+  push:
+    branches:
+      - develop
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_DEV }}
+  SERVICE: xml-parser-api
+  REGION: asia-northeast1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0.2.0
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY_DEV }}
+          export_default_credentials: true  # Set to true to authenticate the Cloud Run action
+
+      - name: Authorize Docker push
+        run: gcloud auth configure-docker
+
+      - name: Build and Push Container
+        run: |-
+          # setup env
+          cp ./swagger.yaml .
+
+          docker build \
+            -t asia.gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }} \
+            --build-arg ENV=dev \
+            .
+          docker push asia.gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }}
+
+      - name: Deploy to Cloud Run
+        run: |-
+          gcloud run deploy ${{ env.SERVICE }} \
+            --region ${{ env.REGION }} \
+            --image asia.gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }} \
+            --platform "managed" \
+            --allow-unauthenticated \
+            --quiet

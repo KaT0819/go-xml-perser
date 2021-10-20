@@ -4,6 +4,8 @@
 *.dll
 *.so
 *.dylib
+# delve output
+debug
 
 # Test binary, built with `go test -c`
 *.test
@@ -12,4 +14,9 @@
 *.out
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+/vendor
+/tmp
+
+*.log
+.air.conf
+.bk
