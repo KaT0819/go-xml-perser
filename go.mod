@@ -16,5 +16,5 @@ require (
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/lib/pq v1.10.3
 	go.uber.org/zap v1.19.1
-	golang.org/x/net v0.0.0-20210503060351-7fd8e65b6420
+	golang.org/x/net v0.7.0
 )
